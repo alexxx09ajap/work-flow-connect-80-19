@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
-import { useData } from '@/contexts/DataContext';
+import { useJobs } from '@/contexts/JobContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { JobCard } from '@/components/JobCard';
 import { Button } from '@/components/ui/button';
@@ -12,11 +12,26 @@ import { X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const JobsPage = () => {
-  const { jobs, loading, jobCategories } = useData();
+  const { jobs, loading, refreshJobs } = useJobs();
   const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [filteredJobs, setFilteredJobs] = useState(jobs);
+  const [jobCategories, setJobCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Asegurémonos de cargar los trabajos cuando el componente se monta
+    refreshJobs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // Extraer categorías únicas de los trabajos
+    if (jobs && jobs.length > 0) {
+      const categories = Array.from(new Set(jobs.map(job => job.category))).filter(Boolean) as string[];
+      setJobCategories(categories);
+    }
+  }, [jobs]);
 
   useEffect(() => {
     let results = jobs;
@@ -33,7 +48,13 @@ const JobsPage = () => {
   }, [jobs, searchQuery, categoryFilter]);
 
   if (loading) {
-    return <MainLayout>Cargando...</MainLayout>;
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-500 dark:text-gray-400">Cargando propuestas...</p>
+        </div>
+      </MainLayout>
+    );
   }
 
   return (
@@ -87,7 +108,7 @@ const JobsPage = () => {
         </div>
           
         <div className="space-y-4">
-          {filteredJobs.length > 0 ? (
+          {filteredJobs && filteredJobs.length > 0 ? (
             filteredJobs.map(job => (
               <JobCard key={job.id} job={job} />
             ))
