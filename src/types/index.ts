@@ -65,8 +65,6 @@ export interface JobType {
   status: 'open' | 'in progress' | 'completed';
   userId: string;
   timestamp?: number;
-  comments?: CommentType[];
-  likes?: string[];
   userName?: string;
   userPhoto?: string;
 }
@@ -78,8 +76,8 @@ export interface CommentType {
   jobId: string;
   userName?: string;
   userPhoto?: string;
-  timestamp?: string;
-  replies?: ReplyType[];
+  timestamp: number;
+  replies: ReplyType[];
 }
 
 export interface ReplyType {
@@ -89,7 +87,7 @@ export interface ReplyType {
   commentId: string;
   userName?: string;
   userPhoto?: string;
-  timestamp?: string;
+  timestamp: number;
 }
 
 // Type aliases to avoid circular dependencies

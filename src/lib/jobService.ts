@@ -36,7 +36,7 @@ export const jobService = {
   
   getPopularJobs: async (): Promise<JobType[]> => {
     try {
-      // Obtenemos los últimos 5 trabajos como populares
+      // Get last 5 jobs as popular
       const response = await api.get('/jobs?limit=5');
       return response.data.jobs || [];
     } catch (error) {
@@ -79,6 +79,7 @@ export const jobService = {
     try {
       console.log("Sending job creation request with data:", jobData);
       const response = await api.post('/jobs', jobData);
+      console.log("Job creation response:", response.data);
       return response.data.job || null;
     } catch (error) {
       console.error('Error creating job:', error);
@@ -106,9 +107,9 @@ export const jobService = {
     }
   },
   
-  addComment: async (jobId: string, comment: string): Promise<CommentType> => {
+  addComment: async (jobId: string, content: string): Promise<CommentType> => {
     try {
-      const response = await api.post(`/jobs/${jobId}/comments`, { content: comment });
+      const response = await api.post(`/jobs/${jobId}/comments`, { content });
       return response.data.comment;
     } catch (error) {
       console.error(`Error adding comment to job ${jobId}:`, error);
@@ -116,19 +117,19 @@ export const jobService = {
     }
   },
   
-  deleteComment: async (commentId: string): Promise<any> => {
+  getJobComments: async (jobId: string): Promise<CommentType[]> => {
     try {
-      const response = await api.delete(`/comments/${commentId}`);
-      return response.data;
+      const response = await api.get(`/jobs/${jobId}/comments`);
+      return response.data.comments || [];
     } catch (error) {
-      console.error(`Error deleting comment ${commentId}:`, error);
-      throw error;
+      console.error(`Error fetching comments for job ${jobId}:`, error);
+      return [];
     }
   },
   
-  addReply: async (commentId: string, reply: string): Promise<any> => {
+  addReplyToComment: async (commentId: string, content: string): Promise<any> => {
     try {
-      const response = await api.post(`/comments/${commentId}/replies`, { content: reply });
+      const response = await api.post(`/comments/${commentId}/replies`, { content });
       return response.data;
     } catch (error) {
       console.error(`Error adding reply to comment ${commentId}:`, error);

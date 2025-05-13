@@ -73,14 +73,13 @@ const CreateJobPage = () => {
         category,
         skills: selectedSkills,
         userId: currentUser.id,
-        userName: currentUser.name,
-        userPhoto: currentUser.photoURL,
         status: 'open'
       };
       
       console.log("Creating job with data:", jobData);
       
-      await createJob(jobData);
+      const createdJob = await createJob(jobData);
+      console.log("Job created successfully:", createdJob);
 
       toast({
         title: "Éxito",

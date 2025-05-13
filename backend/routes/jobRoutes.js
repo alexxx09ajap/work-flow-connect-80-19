@@ -29,10 +29,8 @@ router.post('/:jobId/comments', jobController.addComment);
 // Get comments for a job
 router.get('/:jobId/comments', jobController.getJobComments);
 
-// Save a job
+// Toggle save job (save/unsave)
 router.post('/:jobId/save', jobController.toggleSavedJob);
-
-// Unsave a job
 router.post('/:jobId/unsave', jobController.toggleSavedJob);
 
 module.exports = router;

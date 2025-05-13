@@ -28,7 +28,8 @@ const jobController = {
         budget: parseFloat(budget),
         category,
         skills: Array.isArray(skills) ? skills : [],
-        userId
+        userId,
+        status: 'open'
       });
       
       // Get user info for the response
@@ -36,8 +37,8 @@ const jobController = {
       
       const jobWithUser = {
         ...job,
-        userName: user.username,
-        userPhoto: user.avatar
+        userName: user ? user.username : 'Unknown',
+        userPhoto: user ? user.avatar : null
       };
       
       return res.status(201).json({
@@ -59,7 +60,7 @@ const jobController = {
   // Get all jobs with filters
   async getAllJobs(req, res) {
     try {
-      const { category, search, status } = req.query;
+      const { category, search, status, limit } = req.query;
       
       const filter = {};
       
@@ -78,7 +79,13 @@ const jobController = {
         filter.search = search;
       }
       
-      const jobs = await jobModel.findAll(filter);
+      // Limit results if specified
+      const options = {};
+      if (limit) {
+        options.limit = parseInt(limit, 10);
+      }
+      
+      const jobs = await jobModel.findAll(filter, options);
       
       // Get user info for each job
       const jobsWithUserInfo = await Promise.all(jobs.map(async (job) => {
@@ -253,18 +260,37 @@ const jobController = {
       const { content } = req.body;
       const userId = req.user.userId;
       
-      // Create comment logic
-      // This is a placeholder - you'll need to implement comment model and functionality
+      // Check if job exists
+      const job = await jobModel.findById(jobId);
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: 'Job not found'
+        });
+      }
+      
+      // Create comment
+      const comment = await commentModel.create({
+        content,
+        jobId,
+        userId,
+        timestamp: Date.now()
+      });
+      
+      // Get user info
+      const user = await userModel.findById(userId);
+      
+      const commentWithUser = {
+        ...comment,
+        userName: user ? user.username : 'Unknown',
+        userPhoto: user ? user.avatar : null,
+        replies: []
+      };
       
       return res.status(201).json({
         success: true,
         message: 'Comment added successfully',
-        comment: {
-          id: 'placeholder-id',
-          content,
-          jobId,
-          userId
-        }
+        comment: commentWithUser
       });
       
     } catch (error) {
@@ -282,12 +308,46 @@ const jobController = {
     try {
       const { jobId } = req.params;
       
-      // Get comments logic
-      // This is a placeholder - you'll need to implement comment model and functionality
+      // Check if job exists
+      const job = await jobModel.findById(jobId);
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: 'Job not found'
+        });
+      }
+      
+      // Get comments for job
+      const comments = await commentModel.findByJobId(jobId);
+      
+      // Get user info for each comment
+      const commentsWithUserInfo = await Promise.all(comments.map(async (comment) => {
+        const user = await userModel.findById(comment.userId);
+        
+        // Get replies for comment
+        const replies = await replyModel.findByCommentId(comment.id);
+        
+        // Get user info for each reply
+        const repliesWithUserInfo = await Promise.all(replies.map(async (reply) => {
+          const replyUser = await userModel.findById(reply.userId);
+          return {
+            ...reply,
+            userName: replyUser ? replyUser.username : 'Unknown',
+            userPhoto: replyUser ? replyUser.avatar : null
+          };
+        }));
+        
+        return {
+          ...comment,
+          userName: user ? user.username : 'Unknown',
+          userPhoto: user ? user.avatar : null,
+          replies: repliesWithUserInfo
+        };
+      }));
       
       return res.status(200).json({
         success: true,
-        comments: []
+        comments: commentsWithUserInfo
       });
       
     } catch (error) {
@@ -306,12 +366,30 @@ const jobController = {
       const { jobId } = req.params;
       const userId = req.user.userId;
       
-      // Toggle save job logic
-      // This is a placeholder - you'll need to implement saved jobs functionality
+      // Check if job exists
+      const job = await jobModel.findById(jobId);
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: 'Job not found'
+        });
+      }
+      
+      // Check if user has saved job
+      const hasSaved = await jobModel.isJobSavedByUser(jobId, userId);
+      
+      if (hasSaved) {
+        // Unsave job
+        await jobModel.unsaveJob(jobId, userId);
+      } else {
+        // Save job
+        await jobModel.saveJob(jobId, userId);
+      }
       
       return res.status(200).json({
         success: true,
-        message: 'Job save status updated'
+        message: 'Job save status updated',
+        saved: !hasSaved
       });
       
     } catch (error) {

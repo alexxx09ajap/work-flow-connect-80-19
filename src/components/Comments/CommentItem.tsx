@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { MessageSquare, UserIcon } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { CommentType, useJobs } from '@/contexts/JobContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
@@ -26,7 +26,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, jobId }) => {
     
     setIsSubmittingReply(true);
     try {
-      await addReplyToComment(jobId, comment.id, replyContent, currentUser);
+      await addReplyToComment(comment.id, replyContent);
       setReplyContent('');
       setShowReplyForm(false);
       toast({
@@ -123,7 +123,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, jobId }) => {
       )}
 
       {/* Respuestas */}
-      {comment.replies.length > 0 && (
+      {comment.replies && comment.replies.length > 0 && (
         <div className="ml-11 space-y-3 border-l-2 border-gray-100 pl-3">
           {comment.replies.map((reply) => (
             <div key={reply.id} className="flex space-x-3">

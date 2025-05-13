@@ -5,7 +5,7 @@ import { jobService } from '@/lib/jobService';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
-export type { JobType };
+export type { JobType, CommentType };
 
 export interface JobContextType {
   jobs: JobType[];
@@ -15,13 +15,12 @@ export interface JobContextType {
   popularJobs: JobType[];
   getJobById: (id: string) => JobType | undefined;
   loading: boolean;
-  addComment: (jobId: string, comment: string) => void;
-  addReplyToComment: (commentId: string, reply: string) => void;
+  addComment: (jobId: string, comment: string) => Promise<void>;
+  addReplyToComment: (commentId: string, reply: string) => Promise<void>;
   refreshJobs: () => Promise<void>;
   saveJob: (jobId: string) => Promise<void>;
   unsaveJob: (jobId: string) => Promise<void>;
   savedJobs: JobType[];
-  deleteComment: (commentId: string) => void;
   createJob: (jobData: Partial<JobType>) => Promise<JobType | null>;
   updateJob: (id: string, jobData: Partial<JobType>) => Promise<JobType | null>;
   deleteJob: (id: string) => Promise<boolean>;
@@ -50,7 +49,9 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    refreshJobs();
+    if (currentUser) {
+      refreshJobs();
+    }
   }, [currentUser]);
 
   const loadJobs = async (): Promise<void> => {
@@ -62,8 +63,7 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
         const userJobsData = await jobService.getJobsByUserId(currentUser.id);
         setUserJobs(userJobsData);
 
-        const savedJobsData = await jobService.getSavedJobs(currentUser.id);
-        setSavedJobs(savedJobsData);
+        await getSavedJobs(currentUser.id);
       }
     } catch (error) {
       console.error("Error loading jobs:", error);
@@ -98,7 +98,7 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
     return jobs.find(job => job.id === id);
   };
 
-  const addComment = async (jobId: string, comment: string) => {
+  const addComment = async (jobId: string, comment: string): Promise<void> => {
     try {
       await jobService.addComment(jobId, comment);
       await refreshJobs();
@@ -116,27 +116,9 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const deleteComment = async (commentId: string) => {
+  const addReplyToComment = async (commentId: string, reply: string): Promise<void> => {
     try {
-      await jobService.deleteComment(commentId);
-      await refreshJobs();
-      toast({
-        title: "Comment deleted",
-        description: "Your comment has been deleted successfully."
-      });
-    } catch (error) {
-      console.error("Error deleting comment:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete comment."
-      });
-    }
-  };
-
-  const addReplyToComment = async (commentId: string, reply: string) => {
-    try {
-      await jobService.addReply(commentId, reply);
+      await jobService.addReplyToComment(commentId, reply);
       await refreshJobs();
       toast({
         title: "Reply added",
@@ -152,7 +134,7 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const saveJob = async (jobId: string) => {
+  const saveJob = async (jobId: string): Promise<void> => {
     try {
       await jobService.saveJob(jobId);
       await refreshJobs();
@@ -170,7 +152,7 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const unsaveJob = async (jobId: string) => {
+  const unsaveJob = async (jobId: string): Promise<void> => {
     try {
       await jobService.unsaveJob(jobId);
       await refreshJobs();
@@ -204,6 +186,7 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
   
   const createJob = async (jobData: Partial<JobType>): Promise<JobType | null> => {
     try {
+      console.log("Creating job with data:", jobData);
       const newJob = await jobService.createJob(jobData);
       await refreshJobs();
       toast({
@@ -276,7 +259,6 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
     saveJob,
     unsaveJob,
     savedJobs,
-    deleteComment,
     createJob,
     updateJob,
     deleteJob,
