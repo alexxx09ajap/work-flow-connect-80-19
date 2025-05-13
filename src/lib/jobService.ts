@@ -7,7 +7,7 @@ export const jobService = {
   getAllJobs: async (): Promise<JobType[]> => {
     try {
       const response = await api.get('/jobs');
-      return response.data;
+      return response.data.jobs || [];
     } catch (error) {
       console.error('Error fetching all jobs:', error);
       return [];
@@ -17,7 +17,7 @@ export const jobService = {
   getJobById: async (id: string): Promise<JobType | null> => {
     try {
       const response = await api.get(`/jobs/${id}`);
-      return response.data;
+      return response.data.job || null;
     } catch (error) {
       console.error(`Error fetching job with id ${id}:`, error);
       return null;
@@ -27,7 +27,7 @@ export const jobService = {
   getJobsByUserId: async (userId: string): Promise<JobType[]> => {
     try {
       const response = await api.get(`/jobs?userId=${userId}`);
-      return response.data;
+      return response.data.jobs || [];
     } catch (error) {
       console.error(`Error fetching jobs for user ${userId}:`, error);
       return [];
@@ -36,10 +36,9 @@ export const jobService = {
   
   getPopularJobs: async (): Promise<JobType[]> => {
     try {
-      // Podemos implementar esta función para obtener trabajos populares
-      // Por ahora, simplemente devolveremos los últimos 5 trabajos
+      // Obtenemos los últimos 5 trabajos como populares
       const response = await api.get('/jobs?limit=5');
-      return response.data;
+      return response.data.jobs || [];
     } catch (error) {
       console.error('Error fetching popular jobs:', error);
       return [];
@@ -49,7 +48,7 @@ export const jobService = {
   getSavedJobs: async (userId: string): Promise<JobType[]> => {
     try {
       const response = await api.get(`/users/${userId}/saved-jobs`);
-      return response.data;
+      return response.data.jobs || [];
     } catch (error) {
       console.error(`Error fetching saved jobs for user ${userId}:`, error);
       return [];
@@ -79,20 +78,20 @@ export const jobService = {
   createJob: async (jobData: Partial<JobType>): Promise<JobType | null> => {
     try {
       const response = await api.post('/jobs', jobData);
-      return response.data;
+      return response.data.job || null;
     } catch (error) {
       console.error('Error creating job:', error);
-      return null;
+      throw error; // Propagate the error to handle it in the component
     }
   },
   
   updateJob: async (id: string, jobData: Partial<JobType>): Promise<JobType | null> => {
     try {
       const response = await api.put(`/jobs/${id}`, jobData);
-      return response.data;
+      return response.data.job || null;
     } catch (error) {
       console.error(`Error updating job ${id}:`, error);
-      return null;
+      throw error; // Propagate the error to handle it in the component
     }
   },
   
@@ -102,7 +101,7 @@ export const jobService = {
       return true;
     } catch (error) {
       console.error(`Error deleting job ${id}:`, error);
-      return false;
+      throw error; // Propagate the error to handle it in the component
     }
   },
   

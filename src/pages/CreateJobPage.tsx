@@ -65,7 +65,7 @@ const CreateJobPage = () => {
 
     try {
       // Create the job using the JobContext's createJob function
-      await createJob({
+      const jobData = {
         title,
         description,
         budget: Number(budget),
@@ -75,7 +75,11 @@ const CreateJobPage = () => {
         userName: currentUser.name,
         userPhoto: currentUser.photoURL,
         status: 'open'
-      });
+      };
+      
+      console.log("Creating job with data:", jobData);
+      
+      await createJob(jobData);
 
       toast({
         title: "Éxito",

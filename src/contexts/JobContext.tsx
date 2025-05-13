@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import { CommentType, JobType } from '@/types';
 import { jobService } from '@/lib/jobService';
@@ -21,6 +22,11 @@ export interface JobContextType {
   unsaveJob: (jobId: string) => Promise<void>;
   savedJobs: JobType[];
   deleteComment: (commentId: string) => void;
+  createJob: (jobData: Partial<JobType>) => Promise<JobType | null>;
+  updateJob: (id: string, jobData: Partial<JobType>) => Promise<JobType | null>;
+  deleteJob: (id: string) => Promise<boolean>;
+  loadJobs: () => Promise<void>;
+  getSavedJobs: (userId: string) => Promise<JobType[]>;
 }
 
 const JobContext = createContext<JobContextType | null>(null);
@@ -47,8 +53,7 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
     refreshJobs();
   }, [currentUser]);
 
-  const refreshJobs = async () => {
-    setLoading(true);
+  const loadJobs = async () => {
     try {
       const allJobs = await jobService.getAllJobs();
       setJobs(allJobs);
@@ -60,6 +65,23 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
         const savedJobsData = await jobService.getSavedJobs(currentUser.id);
         setSavedJobs(savedJobsData);
       }
+
+      return allJobs;
+    } catch (error) {
+      console.error("Error loading jobs:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load jobs."
+      });
+      return [];
+    }
+  };
+
+  const refreshJobs = async () => {
+    setLoading(true);
+    try {
+      await loadJobs();
 
       const popularJobsData = await jobService.getPopularJobs();
       setPopularJobs(popularJobsData);
@@ -168,6 +190,82 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
       });
     }
   };
+  
+  const getSavedJobs = async (userId: string) => {
+    try {
+      const savedJobsData = await jobService.getSavedJobs(userId);
+      setSavedJobs(savedJobsData);
+      return savedJobsData;
+    } catch (error) {
+      console.error("Error fetching saved jobs:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load saved jobs."
+      });
+      return [];
+    }
+  };
+  
+  const createJob = async (jobData: Partial<JobType>): Promise<JobType | null> => {
+    try {
+      const newJob = await jobService.createJob(jobData);
+      await refreshJobs();
+      toast({
+        title: "Success",
+        description: "Job created successfully."
+      });
+      return newJob;
+    } catch (error) {
+      console.error("Error creating job:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create job. Please try again."
+      });
+      throw error;
+    }
+  };
+  
+  const updateJob = async (id: string, jobData: Partial<JobType>): Promise<JobType | null> => {
+    try {
+      const updatedJob = await jobService.updateJob(id, jobData);
+      await refreshJobs();
+      toast({
+        title: "Success",
+        description: "Job updated successfully."
+      });
+      return updatedJob;
+    } catch (error) {
+      console.error("Error updating job:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update job. Please try again."
+      });
+      throw error;
+    }
+  };
+  
+  const deleteJob = async (id: string): Promise<boolean> => {
+    try {
+      await jobService.deleteJob(id);
+      await refreshJobs();
+      toast({
+        title: "Success",
+        description: "Job deleted successfully."
+      });
+      return true;
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete job. Please try again."
+      });
+      throw error;
+    }
+  };
 
   const value: JobContextType = {
     jobs,
@@ -183,7 +281,12 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
     saveJob,
     unsaveJob,
     savedJobs,
-    deleteComment
+    deleteComment,
+    createJob,
+    updateJob,
+    deleteJob,
+    loadJobs,
+    getSavedJobs
   };
 
   return (
