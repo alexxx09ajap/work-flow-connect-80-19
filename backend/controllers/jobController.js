@@ -15,6 +15,7 @@ const jobController = {
       
       // Validate required fields
       if (!title || !description || !budget || !category) {
+        console.log('Missing required fields for job creation');
         return res.status(400).json({
           success: false,
           message: 'Missing required fields (title, description, budget, category)'
@@ -31,6 +32,8 @@ const jobController = {
         userId,
         status: 'open'
       });
+      
+      console.log('Job created successfully with ID:', job.id);
       
       // Get user info for the response
       const user = await userModel.findById(userId);
@@ -51,7 +54,7 @@ const jobController = {
       console.error('Error creating job:', error);
       return res.status(500).json({
         success: false,
-        message: 'Error creating job',
+        message: 'Error creating job: ' + error.message,
         error: error.message
       });
     }
@@ -60,7 +63,7 @@ const jobController = {
   // Get all jobs with filters
   async getAllJobs(req, res) {
     try {
-      const { category, search, status, limit } = req.query;
+      const { category, search, status, limit, userId } = req.query;
       
       const filter = {};
       
@@ -74,7 +77,12 @@ const jobController = {
         filter.status = status;
       }
       
-      // Search by title or description (simplified for PostgreSQL)
+      // Filter by userId
+      if (userId) {
+        filter.userId = userId;
+      }
+      
+      // Search by title or description
       if (search) {
         filter.search = search;
       }
@@ -156,6 +164,8 @@ const jobController = {
       const { jobId } = req.params;
       const { title, description, budget, category, skills, status } = req.body;
       const userId = req.user.userId;
+      
+      console.log('Updating job:', { jobId, title, description, budget, category, skills, status, userId });
       
       // Check if job exists
       const job = await jobModel.findById(jobId);
@@ -397,6 +407,38 @@ const jobController = {
       return res.status(500).json({
         success: false,
         message: 'Error toggling saved job',
+        error: error.message
+      });
+    }
+  },
+  
+  // Get saved jobs by user
+  async getSavedJobsByUser(req, res) {
+    try {
+      const { userId } = req.params;
+      
+      // Verify user exists
+      const user = await userModel.findById(userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+      
+      // Get saved jobs
+      const savedJobs = await jobModel.getSavedJobsByUser(userId);
+      
+      return res.status(200).json({
+        success: true,
+        jobs: savedJobs
+      });
+      
+    } catch (error) {
+      console.error('Error getting saved jobs:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error getting saved jobs',
         error: error.message
       });
     }

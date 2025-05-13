@@ -33,4 +33,7 @@ router.get('/:jobId/comments', jobController.getJobComments);
 router.post('/:jobId/save', jobController.toggleSavedJob);
 router.post('/:jobId/unsave', jobController.toggleSavedJob);
 
+// Get saved jobs for a user
+router.get('/user/:userId/saved', jobController.getSavedJobsByUser);
+
 module.exports = router;

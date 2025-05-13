@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
-import { JobType } from '@/contexts/JobContext';
+import { JobType } from '@/types';
 import { useData } from '@/contexts/DataContext';
 
 type EditJobFormProps = {
@@ -113,7 +113,7 @@ const EditJobForm = ({ job, onSubmit, onCancel, isSubmitting }: EditJobFormProps
         <Label htmlFor="status" className="dark:text-gray-200">Estado</Label>
         <Select 
           value={formData.status} 
-          onValueChange={(value: 'open' | 'in-progress' | 'completed') => 
+          onValueChange={(value: 'open' | 'in progress' | 'completed') => 
             setFormData({ ...formData, status: value })
           }
         >
@@ -124,7 +124,7 @@ const EditJobForm = ({ job, onSubmit, onCancel, isSubmitting }: EditJobFormProps
             <SelectItem value="open" className="dark:text-white dark:focus:text-white dark:focus:bg-gray-700">
               Abierto
             </SelectItem>
-            <SelectItem value="in-progress" className="dark:text-white dark:focus:text-white dark:focus:bg-gray-700">
+            <SelectItem value="in progress" className="dark:text-white dark:focus:text-white dark:focus:bg-gray-700">
               En progreso
             </SelectItem>
             <SelectItem value="completed" className="dark:text-white dark:focus:text-white dark:focus:bg-gray-700">

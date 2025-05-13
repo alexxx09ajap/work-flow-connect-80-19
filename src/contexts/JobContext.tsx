@@ -56,10 +56,13 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
 
   const loadJobs = async (): Promise<void> => {
     try {
+      setLoading(true);
+      console.log("Loading all jobs");
       const allJobs = await jobService.getAllJobs();
       setJobs(allJobs);
 
       if (currentUser) {
+        console.log(`Loading jobs for user ${currentUser.id}`);
         const userJobsData = await jobService.getJobsByUserId(currentUser.id);
         setUserJobs(userJobsData);
 
@@ -72,6 +75,8 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Error",
         description: "Failed to load jobs."
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -172,34 +177,43 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
   
   const getSavedJobs = async (userId: string): Promise<void> => {
     try {
+      console.log(`Fetching saved jobs for user ${userId}`);
       const savedJobsData = await jobService.getSavedJobs(userId);
       setSavedJobs(savedJobsData);
     } catch (error) {
-      console.error("Error fetching saved jobs:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load saved jobs."
-      });
+      console.error(`Error fetching saved jobs for user ${userId}:`, error);
+      // Don't show toast for this error since it's not critical for the user experience
     }
   };
   
   const createJob = async (jobData: Partial<JobType>): Promise<JobType | null> => {
     try {
       console.log("Creating job with data:", jobData);
+      
+      // Ensure status is set correctly
+      if (jobData.status === 'in-progress') {
+        jobData.status = 'in progress';
+      }
+      
       const newJob = await jobService.createJob(jobData);
-      await refreshJobs();
-      toast({
-        title: "Success",
-        description: "Job created successfully."
-      });
-      return newJob;
+      
+      if (newJob) {
+        console.log("Job created successfully:", newJob);
+        await refreshJobs();
+        toast({
+          title: "Éxito",
+          description: "Propuesta creada correctamente."
+        });
+        return newJob;
+      } else {
+        throw new Error("No job data returned from server");
+      }
     } catch (error) {
       console.error("Error creating job:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to create job. Please try again."
+        description: "Ocurrió un error al crear la propuesta. Inténtalo de nuevo."
       });
       throw error;
     }
@@ -207,11 +221,16 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
   
   const updateJob = async (id: string, jobData: Partial<JobType>): Promise<JobType | null> => {
     try {
+      // Ensure status is set correctly
+      if (jobData.status === 'in-progress') {
+        jobData.status = 'in progress';
+      }
+      
       const updatedJob = await jobService.updateJob(id, jobData);
       await refreshJobs();
       toast({
-        title: "Success",
-        description: "Job updated successfully."
+        title: "Éxito",
+        description: "Propuesta actualizada correctamente."
       });
       return updatedJob;
     } catch (error) {
@@ -219,7 +238,7 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update job. Please try again."
+        description: "Ocurrió un error al actualizar la propuesta. Inténtalo de nuevo."
       });
       throw error;
     }
@@ -230,8 +249,8 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
       await jobService.deleteJob(id);
       await refreshJobs();
       toast({
-        title: "Success",
-        description: "Job deleted successfully."
+        title: "Éxito",
+        description: "Propuesta eliminada correctamente."
       });
       return true;
     } catch (error) {
@@ -239,7 +258,7 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to delete job. Please try again."
+        description: "Ocurrió un error al eliminar la propuesta. Inténtalo de nuevo."
       });
       throw error;
     }

@@ -80,7 +80,11 @@ export const jobService = {
       console.log("Sending job creation request with data:", jobData);
       const response = await api.post('/jobs', jobData);
       console.log("Job creation response:", response.data);
-      return response.data.job || null;
+      if (response.data.success) {
+        return response.data.job || null;
+      } else {
+        throw new Error(response.data.message || "Error creating job");
+      }
     } catch (error) {
       console.error('Error creating job:', error);
       throw error; // Propagate the error to handle it in the component
@@ -90,7 +94,11 @@ export const jobService = {
   updateJob: async (id: string, jobData: Partial<JobType>): Promise<JobType | null> => {
     try {
       const response = await api.put(`/jobs/${id}`, jobData);
-      return response.data.job || null;
+      if (response.data.success) {
+        return response.data.job || null;
+      } else {
+        throw new Error(response.data.message || "Error updating job");
+      }
     } catch (error) {
       console.error(`Error updating job ${id}:`, error);
       throw error; // Propagate the error to handle it in the component
@@ -99,8 +107,8 @@ export const jobService = {
   
   deleteJob: async (id: string): Promise<boolean> => {
     try {
-      await api.delete(`/jobs/${id}`);
-      return true;
+      const response = await api.delete(`/jobs/${id}`);
+      return response.data.success || false;
     } catch (error) {
       console.error(`Error deleting job ${id}:`, error);
       throw error; // Propagate the error to handle it in the component
