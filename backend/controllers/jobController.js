@@ -1,6 +1,8 @@
 
 const jobModel = require('../models/jobModel');
 const userModel = require('../models/userModel');
+const commentModel = require('../models/commentModel');
+const replyModel = require('../models/replyModel');
 
 const jobController = {
   // Create a new job
@@ -239,6 +241,84 @@ const jobController = {
       return res.status(500).json({
         success: false,
         message: 'Error deleting job',
+        error: error.message
+      });
+    }
+  },
+  
+  // Add a comment to a job
+  async addComment(req, res) {
+    try {
+      const { jobId } = req.params;
+      const { content } = req.body;
+      const userId = req.user.userId;
+      
+      // Create comment logic
+      // This is a placeholder - you'll need to implement comment model and functionality
+      
+      return res.status(201).json({
+        success: true,
+        message: 'Comment added successfully',
+        comment: {
+          id: 'placeholder-id',
+          content,
+          jobId,
+          userId
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error adding comment',
+        error: error.message
+      });
+    }
+  },
+  
+  // Get comments for a job
+  async getJobComments(req, res) {
+    try {
+      const { jobId } = req.params;
+      
+      // Get comments logic
+      // This is a placeholder - you'll need to implement comment model and functionality
+      
+      return res.status(200).json({
+        success: true,
+        comments: []
+      });
+      
+    } catch (error) {
+      console.error('Error getting comments:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error getting comments',
+        error: error.message
+      });
+    }
+  },
+  
+  // Toggle save job
+  async toggleSavedJob(req, res) {
+    try {
+      const { jobId } = req.params;
+      const userId = req.user.userId;
+      
+      // Toggle save job logic
+      // This is a placeholder - you'll need to implement saved jobs functionality
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Job save status updated'
+      });
+      
+    } catch (error) {
+      console.error('Error toggling saved job:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error toggling saved job',
         error: error.message
       });
     }

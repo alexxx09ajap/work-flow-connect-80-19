@@ -50,6 +50,8 @@ export interface MessageType {
   read?: boolean;
   edited?: boolean;
   deleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Job type definition
@@ -63,8 +65,31 @@ export interface JobType {
   status: 'open' | 'in progress' | 'completed';
   userId: string;
   timestamp?: number;
-  comments?: any[];
+  comments?: CommentType[];
   likes?: string[];
+  userName?: string;
+  userPhoto?: string;
+}
+
+export interface CommentType {
+  id: string;
+  content: string;
+  userId: string;
+  jobId: string;
+  userName?: string;
+  userPhoto?: string;
+  timestamp?: string;
+  replies?: ReplyType[];
+}
+
+export interface ReplyType {
+  id: string;
+  content: string;
+  userId: string;
+  commentId: string;
+  userName?: string;
+  userPhoto?: string;
+  timestamp?: string;
 }
 
 // Type aliases to avoid circular dependencies

@@ -23,4 +23,16 @@ router.put('/:jobId', jobController.updateJob);
 // Delete a job
 router.delete('/:jobId', jobController.deleteJob);
 
+// Add a comment to a job
+router.post('/:jobId/comments', jobController.addComment);
+
+// Get comments for a job
+router.get('/:jobId/comments', jobController.getJobComments);
+
+// Save a job
+router.post('/:jobId/save', jobController.toggleSavedJob);
+
+// Unsave a job
+router.post('/:jobId/unsave', jobController.toggleSavedJob);
+
 module.exports = router;

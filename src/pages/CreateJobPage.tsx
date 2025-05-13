@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { useData } from '@/contexts/DataContext';
 import { useJobs } from '@/contexts/JobContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { JobType } from '@/types';
 
 const CreateJobPage = () => {
   const [title, setTitle] = useState('');
@@ -65,7 +66,7 @@ const CreateJobPage = () => {
 
     try {
       // Create the job using the JobContext's createJob function
-      const jobData = {
+      const jobData: Partial<JobType> = {
         title,
         description,
         budget: Number(budget),

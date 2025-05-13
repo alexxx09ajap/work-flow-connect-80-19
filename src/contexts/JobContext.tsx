@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { CommentType, JobType } from '@/types';
+import { JobType, CommentType } from '@/types';
 import { jobService } from '@/lib/jobService';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/components/ui/use-toast';
@@ -16,7 +16,7 @@ export interface JobContextType {
   getJobById: (id: string) => JobType | undefined;
   loading: boolean;
   addComment: (jobId: string, comment: string) => void;
-  addReply: (commentId: string, reply: string) => void;
+  addReplyToComment: (commentId: string, reply: string) => void;
   refreshJobs: () => Promise<void>;
   saveJob: (jobId: string) => Promise<void>;
   unsaveJob: (jobId: string) => Promise<void>;
@@ -26,7 +26,7 @@ export interface JobContextType {
   updateJob: (id: string, jobData: Partial<JobType>) => Promise<JobType | null>;
   deleteJob: (id: string) => Promise<boolean>;
   loadJobs: () => Promise<void>;
-  getSavedJobs: (userId: string) => Promise<JobType[]>;
+  getSavedJobs: (userId: string) => Promise<void>;
 }
 
 const JobContext = createContext<JobContextType | null>(null);
@@ -53,7 +53,7 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
     refreshJobs();
   }, [currentUser]);
 
-  const loadJobs = async () => {
+  const loadJobs = async (): Promise<void> => {
     try {
       const allJobs = await jobService.getAllJobs();
       setJobs(allJobs);
@@ -65,8 +65,6 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
         const savedJobsData = await jobService.getSavedJobs(currentUser.id);
         setSavedJobs(savedJobsData);
       }
-
-      return allJobs;
     } catch (error) {
       console.error("Error loading jobs:", error);
       toast({
@@ -74,11 +72,10 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Error",
         description: "Failed to load jobs."
       });
-      return [];
     }
   };
 
-  const refreshJobs = async () => {
+  const refreshJobs = async (): Promise<void> => {
     setLoading(true);
     try {
       await loadJobs();
@@ -137,7 +134,7 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const addReply = async (commentId: string, reply: string) => {
+  const addReplyToComment = async (commentId: string, reply: string) => {
     try {
       await jobService.addReply(commentId, reply);
       await refreshJobs();
@@ -191,11 +188,10 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
   
-  const getSavedJobs = async (userId: string) => {
+  const getSavedJobs = async (userId: string): Promise<void> => {
     try {
       const savedJobsData = await jobService.getSavedJobs(userId);
       setSavedJobs(savedJobsData);
-      return savedJobsData;
     } catch (error) {
       console.error("Error fetching saved jobs:", error);
       toast({
@@ -203,7 +199,6 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Error",
         description: "Failed to load saved jobs."
       });
-      return [];
     }
   };
   
@@ -276,7 +271,7 @@ export const JobProvider = ({ children }: { children: React.ReactNode }) => {
     getJobById,
     loading,
     addComment,
-    addReply,
+    addReplyToComment,
     refreshJobs,
     saveJob,
     unsaveJob,

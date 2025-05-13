@@ -1,5 +1,5 @@
 
-import { JobType } from '@/contexts/JobContext';
+import { CommentType, JobType } from '@/types';
 import { UserType } from '@/types';
 import api from '@/services/api';
 
@@ -77,6 +77,7 @@ export const jobService = {
   
   createJob: async (jobData: Partial<JobType>): Promise<JobType | null> => {
     try {
+      console.log("Sending job creation request with data:", jobData);
       const response = await api.post('/jobs', jobData);
       return response.data.job || null;
     } catch (error) {
@@ -105,10 +106,10 @@ export const jobService = {
     }
   },
   
-  addComment: async (jobId: string, comment: string): Promise<any> => {
+  addComment: async (jobId: string, comment: string): Promise<CommentType> => {
     try {
       const response = await api.post(`/jobs/${jobId}/comments`, { content: comment });
-      return response.data;
+      return response.data.comment;
     } catch (error) {
       console.error(`Error adding comment to job ${jobId}:`, error);
       throw error;
